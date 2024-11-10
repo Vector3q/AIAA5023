@@ -6,7 +6,7 @@ import json
 
 def complete_Writing_Prompt(topic, outline, paragraph, length):
     Writing_Prompt = f"""
-        Please write a detailed and comprehensive paragraph for a 40,000-word article. Adhere strictly to the word count requirement for each paragraph and ensure that the content is thorough, informative, and well-researched.
+        Please write a detailed and comprehensive paragraph for a 60,000-word article. Adhere strictly to the word count requirement for each paragraph and ensure that the content is thorough, informative, and well-researched.
 
         - **Topic**: {topic}
         - **Outline**: {outline}
@@ -20,7 +20,7 @@ def complete_Writing_Prompt(topic, outline, paragraph, length):
 
 def complete_Planning_Prompt(topic):
     Planning_Prompt = f"""
-        Please help me create the structure for a 40,000-word article. Provide a concrete idea and approximate length for each paragraph.
+        Please help me create the structure for a 60,000-word article. Provide a concrete idea and approximate length for each paragraph.
 
         - **Topic**: {topic}
 
@@ -31,10 +31,24 @@ def complete_Planning_Prompt(topic):
     """
     return Planning_Prompt
 
+def get_json_item(input):
+    import json
+
+    def convert_string_to_json_value(input_string, id):
+        json_string = json.dumps({"ParagraphID": id, "Content": input_string}, ensure_ascii=False)
+        return json_string
+
+    c_pattern = r'"Content":\s*"([^}]*)"'
+    paragraph_ids = re.findall(r'"ParagraphID":\s*(\d+)', input)
+
+    matches = re.findall(c_pattern, input)
+    for match in matches:
+        output = convert_string_to_json_value(match, int(paragraph_ids[0]))
+        output = json.loads(output)
+        return output
+
 def extract_json_from_text(text):
-    print(text)
     json_pattern = re.compile(r'\[\s*{.*?}\s*\]', re.DOTALL)
-    content_pattern = r'"Content":\s*"([^}]*)"'
     # json_text = re.sub(r"(?s)^(.*?```json\s*|\n)(.*?)(```.*)", r"\2", text).strip()
     match = json_pattern.search(text)
     # match = json_text
@@ -55,6 +69,9 @@ def extract_json_from_text(text):
         print("error text: ")
         print(text)
         print("未找到 JSON 数据")
+
+# def extract_content_from_string_json(input):
+    
 
 def print_article_outline(article_Outline):
     for item in article_Outline:

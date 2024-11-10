@@ -24,6 +24,11 @@ def text_Judgement(topic, text, times):
         ],
     )
     times += 1
+    print("############################################################################################")
+    print("completion_tokens: "+ str(response.usage.completion_tokens))
+    print("prompt_tokens: "+ str(response.usage.prompt_tokens))
+    print("total_tokens: "+ str(response.usage.total_tokens))
+    print("############################################################################################")
     return response.choices[0].message, times
 
 

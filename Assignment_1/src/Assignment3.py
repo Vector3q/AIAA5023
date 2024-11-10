@@ -1,6 +1,11 @@
 from zhipuai import ZhipuAI
 from Judge import text_Judgement, complete_Judge_Prompt
 import utils
+import argparse
+
+parser = argparse.ArgumentParser(description="")
+parser.add_argument("-eva", "--evaluation", action="store_true", help="To evaluate the quality of ")  # 可选参数
+args = parser.parse_args()
 
 times = 0
 word_count = 0
@@ -17,12 +22,11 @@ def text_generation(prompt, times, word_count):
         max_tokens = 4096
     )
     times += 1
-    word_count += utils.calculate_word_count(response.choices[0].message.content)
+    
     print("############################################################################################")
     print("completion_tokens: "+ str(response.usage.completion_tokens))
     print("prompt_tokens: "+ str(response.usage.prompt_tokens))
     print("total_tokens: "+ str(response.usage.total_tokens))
-    print("total word count: "+ str(utils.calculate_word_count(response.choices[0].message.content)))
     print("############################################################################################")
 
     return response.choices[0].message, times, word_count
@@ -40,7 +44,13 @@ def savig_files(results):
         f.write(results)
 
 def load_files():
-    pass
+    try:
+        with open("50022955.txt", "r") as f:
+            contents = f.read()
+        return contents
+    except FileNotFoundError:
+        print("File not found.")
+        return None
 
 def planning(topic, times, word_count):
 
@@ -54,12 +64,15 @@ def planning(topic, times, word_count):
     word_count = 0
     for item in article_Outline:
         results, times, word_count = text_generation(utils.complete_Writing_Prompt(topic, str(article_Outline), item['ParagraphIdea'], item['ParagraphLength']), times, word_count)
-        results = utils.extract_json_from_text(results.content)
-        print(str(results[0]['ParagraphID']))
+        results = utils.get_json_item(results.content)
+        print(results)
 
-        _paragraph = str(results[0]['Content']) + "\n\n"
-        print(_paragraph)
+        _paragraph = results["Content"] + "\n\n"
+        word_count += utils.calculate_word_count(results["Content"])
         initial_article += str(_paragraph)
+
+        print()
+        print("word_count: "+ str(utils.calculate_word_count(results["Content"])))
 
     
     print("############################################################################################")
@@ -67,34 +80,29 @@ def planning(topic, times, word_count):
     savig_files(initial_article)
     return times, word_count
 
-def others():
+def coarse_generation():
     pass
 
-# Simple example
+# The topic of generation content
 topic = "Application of Nanotechnology in Medicine"
 
 
-print("############################################################################################")
-times, word_count = planning(topic, times, word_count)
 
 
-print("API calls:", times)
-print("Total word conut: ", word_count)
-print("############################################################################################")
 
+if args.evaluation:
+    article = load_files()
 
-# results, times = text_generation("generating a 50000-words long English text with the topic of: " + topic, times)
+    score, times = text_Judgement(topic, article, times)
+    print(score.content)
+    print("############################################################################################")
+else:
+    print("############################################################################################")
+    times, word_count = planning(topic, times, word_count)
+
+    print("API calls:", times)
+    print("Total word conut: ", word_count)
+    print("############################################################################################")
+
 # results, times = text_generation("polish the text and extend each part with more content, " + results.content, times)
-
-# savig_files(results.content)
-
-
-
-# Judgement
-
-# score, times = text_Judgement(topic, results.content, times)
-# print(score)
-
-
-############################################################################################################
 
