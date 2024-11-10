@@ -3,11 +3,12 @@ from Judge import text_Judgement, complete_Judge_Prompt
 import utils
 
 times = 0
+word_count = 0
 client = ZhipuAI(api_key="f36c12ddada4a0db960a6c2c926f7b3c.jnit4yENhz8vZW9d")  # Please fill in your own APIKey
 
 # The maximum number of tokens for model output, maximum output is 4095, default value is 1024.
 
-def text_generation(prompt, times):
+def text_generation(prompt, times, word_count):
     response = client.chat.completions.create(
         model="glm-4-flash", 
         messages=[
@@ -16,6 +17,7 @@ def text_generation(prompt, times):
         max_tokens = 4096
     )
     times += 1
+    word_count += utils.calculate_word_count(response.choices[0].message.content)
     print("############################################################################################")
     print("completion_tokens: "+ str(response.usage.completion_tokens))
     print("prompt_tokens: "+ str(response.usage.prompt_tokens))
@@ -23,7 +25,7 @@ def text_generation(prompt, times):
     print("total word count: "+ str(utils.calculate_word_count(response.choices[0].message.content)))
     print("############################################################################################")
 
-    return response.choices[0].message, times
+    return response.choices[0].message, times, word_count
 
 
 ############################################################################################################
@@ -40,17 +42,18 @@ def savig_files(results):
 def load_files():
     pass
 
-def planning(topic, times):
+def planning(topic, times, word_count):
 
-    results, times = text_generation(utils.complete_Planning_Prompt(topic), times)
+    results, times, word_count = text_generation(utils.complete_Planning_Prompt(topic), times, word_count)
     article_Outline = utils.extract_json_from_text(results.content)
     print("Article Outline: ")
     print("") 
     utils.print_article_outline(article_Outline)
 
     initial_article = ""
+    word_count = 0
     for item in article_Outline:
-        results, times = text_generation(utils.complete_Writing_Prompt(topic, str(article_Outline), item['ParagraphIdea'], item['ParagraphLength']), times)
+        results, times, word_count = text_generation(utils.complete_Writing_Prompt(topic, str(article_Outline), item['ParagraphIdea'], item['ParagraphLength']), times, word_count)
         results = utils.extract_json_from_text(results.content)
         print(str(results[0]['ParagraphID']))
 
@@ -62,7 +65,7 @@ def planning(topic, times):
     print("############################################################################################")
 
     savig_files(initial_article)
-    return times
+    return times, word_count
 
 def others():
     pass
@@ -72,10 +75,11 @@ topic = "Application of Nanotechnology in Medicine"
 
 
 print("############################################################################################")
-times = planning(topic, times)
+times, word_count = planning(topic, times, word_count)
 
 
 print("API calls:", times)
+print("Total word conut: ", word_count)
 print("############################################################################################")
 
 
