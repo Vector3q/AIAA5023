@@ -38,7 +38,7 @@ def text_generation(prompt, times, word_count):
 # You can also implement functions for the chatbot to interact with the user
 ############################################################################################################
 
-def savig_files(results):
+def save_files(results):
     # to save to generated_text.txt
     with open("50022955.txt", "w") as f:
         f.write(results)
@@ -77,18 +77,12 @@ def planning(topic, times, word_count):
     
     print("############################################################################################")
 
-    savig_files(initial_article)
+    save_files(initial_article)
     return times, word_count
 
-def coarse_generation():
-    pass
 
 # The topic of generation content
 topic = "Application of Nanotechnology in Medicine"
-
-
-
-
 
 if args.evaluation:
     article = load_files()

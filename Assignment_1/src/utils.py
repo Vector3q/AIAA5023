@@ -6,7 +6,7 @@ import json
 
 def complete_Writing_Prompt(topic, outline, paragraph, length):
     Writing_Prompt = f"""
-        Please write a detailed and comprehensive paragraph for a 60,000-word article. Adhere strictly to the word count requirement for each paragraph and ensure that the content is thorough, informative, and well-researched.
+        Please write a detailed and comprehensive paragraph for a 60,000-word article. Ensure each paragraph adheres strictly to its word count requirement, maximizing the length of the content.
 
         - **Topic**: {topic}
         - **Outline**: {outline}
@@ -20,7 +20,7 @@ def complete_Writing_Prompt(topic, outline, paragraph, length):
 
 def complete_Planning_Prompt(topic):
     Planning_Prompt = f"""
-        Please help me create the structure for a 60,000-word article. Provide a concrete idea and approximate length for each paragraph.
+        Please help me create the structure for a 60,000-word article. Provide a concrete idea and approximate length for each paragraph. Ensure that the article provides detailed information on all aspects.
 
         - **Topic**: {topic}
 

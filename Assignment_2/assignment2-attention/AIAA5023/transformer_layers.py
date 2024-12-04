@@ -38,7 +38,13 @@ class PositionalEncoding(nn.Module):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        position = torch.arrange(0, max_len, dtype=torch.float).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, embed_dim, 2).float() * (-math.log(10000.0) / embed_dim))
+
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+
+        pe = pe.unsqueeze(0)  # Add batch dimension
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -70,7 +76,8 @@ class PositionalEncoding(nn.Module):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        output = self.pe[:, :S, :]
+        output = self.dropout(output)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -165,7 +172,28 @@ class MultiHeadAttention(nn.Module):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        query = self.query(query)
+        key = self.key(key)
+        value = self.value(value)
+
+        query = query.view(N, S, self.n_head, self.head_dim).transpose(1, 2)
+        key = key.view(N, T, self.n_head, self.head_dim).transpose(1, 2)
+        value = value.view(N, T, self.n_head, self.head_dim).transpose(1, 2)
+
+        attn_weights = torch.matmul(
+            query, key.transpose(-2, -1)
+        ) / math.sqrt(self.head_dim)
+
+        if attn_weights is not None:
+          attn_weights = attn_weights.masked_fill(attn_mask == 0, float('-inf'))
+
+        attn_weights = torch.nn.functional.softmax(attn_weights, -1)  # (N, H, S, T)
+        attn_weights = self.attn_drop(attn_weights)
+
+        output_mid = attn_weights @ value
+        output_mid = output_mid.transpose(1, 2).contiguous().view(N, S, E)
+
+        output = self.proj(output_mid)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
