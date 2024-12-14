@@ -38,14 +38,11 @@ class PositionalEncoding(nn.Module):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        position = torch.arrange(0, max_len, dtype=torch.float).unsqueeze(1)
+        position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
         div_term = torch.exp(torch.arange(0, embed_dim, 2).float() * (-math.log(10000.0) / embed_dim))
 
-        pe[:, 0::2] = torch.sin(position * div_term)
-        pe[:, 1::2] = torch.cos(position * div_term)
-
-        pe = pe.unsqueeze(0)  # Add batch dimension
-
+        pe[:, :, 0::2] = torch.sin(position * div_term)
+        pe[:, :, 1::2] = torch.cos(position * div_term)
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
         #                             END OF YOUR CODE                             #
@@ -76,7 +73,7 @@ class PositionalEncoding(nn.Module):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        output = self.pe[:, :S, :]
+        output = x + self.pe[:, :x.size(1), :]
         output = self.dropout(output)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
@@ -184,7 +181,7 @@ class MultiHeadAttention(nn.Module):
             query, key.transpose(-2, -1)
         ) / math.sqrt(self.head_dim)
 
-        if attn_weights is not None:
+        if attn_mask is not None:
           attn_weights = attn_weights.masked_fill(attn_mask == 0, float('-inf'))
 
         attn_weights = torch.nn.functional.softmax(attn_weights, -1)  # (N, H, S, T)

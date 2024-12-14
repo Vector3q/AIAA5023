@@ -13,7 +13,7 @@ client = ZhipuAI(api_key="f36c12ddada4a0db960a6c2c926f7b3c.jnit4yENhz8vZW9d")  #
 
 # The maximum number of tokens for model output, maximum output is 4095, default value is 1024.
 
-def text_generation(prompt, times, word_count):
+def text_generation(prompt, times):
     response = client.chat.completions.create(
         model="glm-4-flash", 
         messages=[
@@ -22,14 +22,7 @@ def text_generation(prompt, times, word_count):
         max_tokens = 4096
     )
     times += 1
-    
-    print("############################################################################################")
-    print("completion_tokens: "+ str(response.usage.completion_tokens))
-    print("prompt_tokens: "+ str(response.usage.prompt_tokens))
-    print("total_tokens: "+ str(response.usage.total_tokens))
-    print("############################################################################################")
-
-    return response.choices[0].message, times, word_count
+    return response.choices[0].message, times
 
 
 ############################################################################################################
@@ -52,33 +45,28 @@ def load_files():
         print("File not found.")
         return None
 
-def planning(topic, times, word_count):
+def planning(topic, times):
 
-    results, times, word_count = text_generation(utils.complete_Planning_Prompt(topic), times, word_count)
+    results, times = text_generation(utils.complete_Planning_Prompt(topic), times)
     article_Outline = utils.extract_json_from_text(results.content)
     print("Article Outline: ")
     print("") 
     utils.print_article_outline(article_Outline)
 
     initial_article = ""
-    word_count = 0
     for item in article_Outline:
-        results, times, word_count = text_generation(utils.complete_Writing_Prompt(topic, str(article_Outline), item['ParagraphIdea'], item['ParagraphLength']), times, word_count)
+        results, times = text_generation(utils.complete_Writing_Prompt(topic, str(article_Outline), item['ParagraphIdea'], item['ParagraphLength']), times)
         results = utils.get_json_item(results.content)
         print(results)
 
         _paragraph = results["Content"] + "\n\n"
-        word_count += utils.calculate_word_count(results["Content"])
         initial_article += str(_paragraph)
-
-        print()
-        print("word_count: "+ str(utils.calculate_word_count(results["Content"])))
 
     
     print("############################################################################################")
 
     save_files(initial_article)
-    return times, word_count
+    return times
 
 
 # The topic of generation content
@@ -92,10 +80,9 @@ if args.evaluation:
     print("############################################################################################")
 else:
     print("############################################################################################")
-    times, word_count = planning(topic, times, word_count)
+    times = planning(topic, times)
 
     print("API calls:", times)
-    print("Total word conut: ", word_count)
     print("############################################################################################")
 
 # results, times = text_generation("polish the text and extend each part with more content, " + results.content, times)
