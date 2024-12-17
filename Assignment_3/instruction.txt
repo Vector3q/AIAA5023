@@ -1,0 +1,5 @@
+Open the Assignment3.ipynb.
+
+Create the conda environment python=3.10.
+
+And follow the steps in file is ok to get the video, My prompt is included in the source code.
